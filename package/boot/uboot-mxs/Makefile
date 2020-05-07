@@ -8,13 +8,14 @@
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
-PKG_VERSION:=2016.01
+PKG_VERSION:=2019.10
 PKG_RELEASE:=1
 
-PKG_HASH:=e5792fba9399d9804aa2ef667f14ff771e2cdece72367d340250265bf095a5d5
+PKG_HASH:=8d6d6070739522dd236cba7055b8736bfe92b4fac0ea18ad809829ca79667014
 
 include $(INCLUDE_DIR)/u-boot.mk
 include $(INCLUDE_DIR)/package.mk
+include $(INCLUDE_DIR)/host-build.mk
 
 define U-Boot/Default
   BUILD_TARGET:=mxs
@@ -36,6 +37,8 @@ UBOOT_TARGETS := \
 	duckbill
 
 UBOOT_MAKE_FLAGS += $(UBOOT_IMAGE)
+
+Build/Exports:=$(Host/Exports)
 
 define Build/InstallDev
 	$(INSTALL_DIR) $(STAGING_DIR_IMAGE)

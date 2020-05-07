@@ -12,7 +12,13 @@ include $(INCLUDE_DIR)/host-build.mk
 include $(INCLUDE_DIR)/kernel.mk
 
 define cc
-	$(HOSTCC) $(HOST_CFLAGS) -include endian.h $(HOST_LDFLAGS) -o $(HOST_BUILD_DIR)/bin/$(firstword $(1)) $(foreach src,$(1),src/$(src).c) $(2)
+	$(HOSTCC) \
+		$(HOST_CFLAGS) \
+		-Wno-unused-parameter \
+		-include endian.h $(HOST_LDFLAGS) \
+		-o $(HOST_BUILD_DIR)/bin/$(firstword $(1)) \
+		$(foreach src,$(1),src/$(src).c) \
+		$(2)
 endef
 
 define Host/Compile
@@ -20,9 +26,10 @@ define Host/Compile
 	$(call cc,addpattern)
 	$(call cc,asustrx)
 	$(call cc,trx)
+	$(call cc,otrx)
 	$(call cc,motorola-bin)
 	$(call cc,dgfirmware)
-	$(call cc,mksenaofw md5)
+	$(call cc,mksenaofw md5, -Wall --std=gnu99)
 	$(call cc,trx2usr)
 	$(call cc,ptgen)
 	$(call cc,srec2bin)
@@ -31,7 +38,7 @@ define Host/Compile
 	$(call cc,mkzynfw)
 	$(call cc,lzma2eva,-lz)
 	$(call cc,mkcasfw)
-	$(call cc,mkfwimage,-lz -Wall)
+	$(call cc,mkfwimage,-lz -Wall -Werror -Wextra -D_FILE_OFFSET_BITS=64)
 	$(call cc,mkfwimage2,-lz)
 	$(call cc,imagetag imagetag_cmdline cyg_crc32)
 	$(call cc,add_header)
@@ -39,9 +46,9 @@ define Host/Compile
 	$(call cc,encode_crc)
 	$(call cc,nand_ecc)
 	$(call cc,mkplanexfw sha1)
-	$(call cc,mktplinkfw md5, -Wall)
-	$(call cc,mktplinkfw2 md5)
-	$(call cc,tplink-safeloader md5, -Wall)
+	$(call cc,mktplinkfw mktplinkfw-lib md5, -Wall -fgnu89-inline)
+	$(call cc,mktplinkfw2 mktplinkfw-lib md5, -fgnu89-inline)
+	$(call cc,tplink-safeloader md5, -Wall --std=gnu99)
 	$(call cc,pc1crypt)
 	$(call cc,osbridge-crc)
 	$(call cc,wrt400n cyg_crc32)
@@ -62,14 +69,15 @@ define Host/Compile
 	$(call cc,mkbrncmdline)
 	$(call cc,mkbrnimg)
 	$(call cc,mkdapimg)
+	$(call cc,mkdapimg2)
 	$(call cc, mkcameofw, -Wall)
 	$(call cc,seama md5)
 	$(call cc,oseama md5, -Wall)
 	$(call cc,fix-u-media-header cyg_crc32,-Wall)
 	$(call cc,hcsmakeimage bcmalgo)
 	$(call cc,mkporayfw, -Wall)
+	$(call cc,mkrasimage, --std=gnu99)
 	$(call cc,mkhilinkfw, -lcrypto)
-	$(call cc,mkdcs932, -Wall)
 	$(call cc,mkheader_gemtek,-lz)
 	$(call cc,mkrtn56uimg, -lz)
 	$(call cc,dgn3500sum, -Wall)
@@ -80,6 +88,11 @@ define Host/Compile
 	$(call cc,mkbuffaloimg, -Wall)
 	$(call cc,zyimage, -Wall)
 	$(call cc,mkdhpimg buffalo-lib, -Wall)
+	$(call cc,mkdlinkfw mkdlinkfw-lib, -lz -Wall --std=c99)
+	$(call cc,dns313-header, -Wall)
+	$(call cc,mksercommfw, -Wall)
+	$(call cc,nec-enc, -Wall --std=gnu99)
+	$(call cc,uimage_padhdr, -Wall -lz)
 endef
 
 define Host/Install

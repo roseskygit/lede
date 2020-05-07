@@ -8,8 +8,11 @@ local fs = require "nixio.fs"
 m = Map("n2n_v2", translate("N2N v2 VPN"),
         translatef("n2n is a layer-two peer-to-peer virtual private network (VPN) which allows users to exploit features typical of P2P applications at network instead of application level."))
 
+m:section(SimpleSection).template  = "n2n_v2/status"
+
 s = m:section(TypedSection, "edge", translate("N2N Edge Settings"))
 s.anonymous = true
+s.addremove = true 
 
 switch = s:option(Flag, "enabled", translate("Enable"))
 switch.rmempty = false
@@ -26,6 +29,10 @@ ipaddr.optional = false
 
 netmask = s:option(Value, "netmask", translate("Interface netmask"))
 netmask.optional = false
+
+mtu = s:option(Value, "mtu", translate("MTU"))
+mtu.datatype = "range(1,1500)"
+mtu.optional = false
 
 supernode = s:option(Value, "supernode", translate("Supernode IP address"))
 supernode.optional = false
@@ -44,6 +51,7 @@ route.rmempty = false
 
 s2 = m:section(TypedSection, "supernode", translate("N2N Supernode Settings"))
 s2.anonymous = true
+s2.addremove = true 
 
 switch = s2:option(Flag, "enabled", translate("Enable"))
 switch.rmempty = false

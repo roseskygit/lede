@@ -18,41 +18,49 @@ $(eval $(call TestHostCommand,working-make, \
 	$(MAKE) -v | grep -E 'Make (3\.8[1-9]|3\.9[0-9]|[4-9]\.)'))
 
 $(eval $(call TestHostCommand,case-sensitive-fs, \
-	LEDE can only be built on a case-sensitive filesystem, \
+	OpenWrt can only be built on a case-sensitive filesystem, \
 	rm -f $(TMP_DIR)/test.*; touch $(TMP_DIR)/test.fs; \
 		test ! -f $(TMP_DIR)/test.FS))
 
 $(eval $(call TestHostCommand,proper-umask, \
 	Please build with umask 022 - other values produce broken packages, \
-	umask | grep -xE 00[012][012]))
+	umask | grep -xE 0?0[012][012]))
 
 $(eval $(call SetupHostCommand,gcc, \
-	Please install the GNU C Compiler (gcc), \
-	$(CC) --version | grep gcc, \
-	gcc --version | grep gcc, \
-	gcc49 --version | grep gcc, \
+	Please install the GNU C Compiler (gcc) 4.8 or later, \
+	$(CC) -dumpversion | grep -E '^(4\.[8-9]|[5-9]\.?)', \
+	gcc -dumpversion | grep -E '^(4\.[8-9]|[5-9]\.?)', \
 	gcc48 --version | grep gcc, \
-	gcc47 --version | grep gcc, \
-	gcc46 --version | grep gcc, \
-	gcc --version | grep Apple.LLVM ))
+	gcc49 --version | grep gcc, \
+	gcc5 --version | grep gcc, \
+	gcc6 --version | grep gcc, \
+	gcc7 --version | grep gcc, \
+	gcc8 --version | grep gcc, \
+	gcc9 --version | grep gcc, \
+	gcc --version | grep -E 'Apple.(LLVM|clang)' ))
 
 $(eval $(call TestHostCommand,working-gcc, \
-	Please reinstall the GNU C Compiler - it appears to be broken, \
+	\nPlease reinstall the GNU C Compiler (4.8 or later) - \
+	it appears to be broken, \
 	echo 'int main(int argc, char **argv) { return 0; }' | \
 		gcc -x c -o $(TMP_DIR)/a.out -))
 
 $(eval $(call SetupHostCommand,g++, \
-	Please install the GNU C++ Compiler (g++), \
-	$(CXX) --version | grep g++, \
-	g++ --version | grep g++, \
-	g++49 --version | grep g++, \
+	Please install the GNU C++ Compiler (g++) 4.8 or later, \
+	$(CXX) -dumpversion | grep -E '^(4\.[8-9]|[5-9]\.?)', \
+	g++ -dumpversion | grep -E '^(4\.[8-9]|[5-9]\.?)', \
 	g++48 --version | grep g++, \
-	g++47 --version | grep g++, \
-	g++46 --version | grep g++, \
-	g++ --version | grep Apple.LLVM ))
+	g++49 --version | grep g++, \
+	g++5 --version | grep g++, \
+	g++6 --version | grep g++, \
+	g++7 --version | grep g++, \
+	g++8 --version | grep g++, \
+	g++9 --version | grep g++, \
+	g++ --version | grep -E 'Apple.(LLVM|clang)' ))
 
 $(eval $(call TestHostCommand,working-g++, \
-	Please reinstall the GNU C++ Compiler - it appears to be broken, \
+	\nPlease reinstall the GNU C++ Compiler (4.8 or later) - \
+	it appears to be broken, \
 	echo 'int main(int argc, char **argv) { return 0; }' | \
 		g++ -x c++ -o $(TMP_DIR)/a.out - -lstdc++ && \
 		$(TMP_DIR)/a.out))
@@ -67,11 +75,6 @@ ifeq ($(HOST_OS),Linux)
 else
   zlib_link_flags := -lz
 endif
-
-$(eval $(call TestHostCommand,zlib, \
-	Please install a static zlib. (Missing libz.a or zlib.h), \
-	echo 'int main(int argc, char **argv) { gzdopen(0, "rb"); return 0; }' | \
-		gcc -include zlib.h -x c -o $(TMP_DIR)/a.out - $(zlib_link_flags)))
 
 $(eval $(call TestHostCommand,perl-thread-queue, \
 	Please install the Perl Thread::Queue module, \
@@ -102,9 +105,9 @@ $(eval $(call SetupHostCommand,cp,Please install GNU fileutils, \
 	gcp --help 2>&1 | grep 'Copy SOURCE', \
 	cp --help 2>&1 | grep 'Copy SOURCE'))
 
-$(eval $(call SetupHostCommand,seq,, \
+$(eval $(call SetupHostCommand,seq,Please install seq, \
 	gseq --version, \
-	seq --version))
+	seq --version 2>&1 | grep seq))
 
 $(eval $(call SetupHostCommand,awk,Please install GNU 'awk', \
 	gawk --version 2>&1 | grep GNU, \
@@ -138,10 +141,21 @@ $(eval $(call SetupHostCommand,wget,Please install GNU 'wget', \
 $(eval $(call SetupHostCommand,perl,Please install Perl 5.x, \
 	perl --version | grep "perl.*v5"))
 
-$(eval $(call SetupHostCommand,python,Please install Python 2.x, \
-	python2.7 -V 2>&1 | grep Python, \
-	python2 -V 2>&1 | grep Python, \
-	python -V 2>&1 | grep Python))
+$(eval $(call CleanupPython2))
+
+$(eval $(call SetupHostCommand,python,Please install Python >= 3.5, \
+	python3.8 -V 2>&1 | grep 'Python 3', \
+	python3.7 -V 2>&1 | grep 'Python 3', \
+	python3.6 -V 2>&1 | grep 'Python 3', \
+	python3.5 -V 2>&1 | grep 'Python 3', \
+	python3 -V 2>&1 | grep -E 'Python 3\.[5-9]\.?'))
+
+$(eval $(call SetupHostCommand,python3,Please install Python >= 3.5, \
+	python3.8 -V 2>&1 | grep 'Python 3', \
+	python3.7 -V 2>&1 | grep 'Python 3', \
+	python3.6 -V 2>&1 | grep 'Python 3', \
+	python3.5 -V 2>&1 | grep 'Python 3', \
+	python3 -V 2>&1 | grep -E 'Python 3\.[5-9]\.?'))
 
 $(eval $(call SetupHostCommand,git,Please install Git (git-core) >= 1.7.12.2, \
 	git --exec-path | xargs -I % -- grep -q -- --recursive %/git-submodule))
